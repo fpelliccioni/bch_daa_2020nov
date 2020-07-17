@@ -11,7 +11,6 @@ uint32_t CAPI_GetNextASERTWorkRequired(const void* pindexPrev,
                                   const void* pblock,
                                   const void* params,
                                   const int32_t nforkHeight);
-}
 
 #ifdef __cplusplus
 } // extern "C"

@@ -1,6 +1,6 @@
 rm -rf dist
 rm -rf build
-rm -rf bitprim_native.egg-info
-rm -rf bitprim_native.so
+rm -rf aserti3416cpp.egg-info
+rm -rf aserti3416cpp.cpython-38-x86_64-linux-gnu.so
 rm -rf bitprim
 rm -rf blockchain

@@ -153,14 +153,14 @@ uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
 }
 
 
-int main() {
-    CBlockIndex const* pindexPrev;
-    CBlockHeader const* pblock;
-    Consensus::Params params;
-    // int32_t const nforkHeight = gArgs.GetArg("-asertactivationheight", INT_MAX);
-    int32_t const nforkHeight = 0;
+// int main() {
+//     CBlockIndex const* pindexPrev;
+//     CBlockHeader const* pblock;
+//     Consensus::Params params;
+//     // int32_t const nforkHeight = gArgs.GetArg("-asertactivationheight", INT_MAX);
+//     int32_t const nforkHeight = 0;
 
-    auto res = GetNextASERTWorkRequired(pindexPrev, pblock, params, nforkHeight);
+//     auto res = GetNextASERTWorkRequired(pindexPrev, pblock, params, nforkHeight);
 
-    return 0;
-}
+//     return 0;
+// }

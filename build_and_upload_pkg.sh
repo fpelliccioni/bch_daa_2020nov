@@ -1,11 +1,9 @@
 # Requirements --------------------------------------
-# pip install conan
 # pip install wheel
 # pip install twine
 # ---------------------------------------------------
 
 sudo ./reset.sh
-sudo conan install .
 sudo pip install -v -e .
 
 sudo python setup.py sdist                       # Source Distribution, for Linux

@@ -7,18 +7,16 @@
 
 extern "C" {  
 
-uint32_t CAPI_GetNextASERTWorkRequired(void const* pindexPrev,
-                                  void const* pblock,
-                                  void const* params,
-                                  const int32_t nforkHeight) {
+// uint32_t CAPI_GetNextASERTWorkRequired(void const* pindexPrev,
+//                                   void const* pblock,
+//                                   void const* params,
+//                                   const int32_t nforkHeight) {
 
-    CBlockIndex const* pindexPrev_cpp = static_cast<CBlockIndex const*>(pindexPrev);
-    CBlockHeader const* pblock_cpp = static_cast<CBlockHeader const*>(pblock);
-    Consensus::Params const& params_cpp = *static_cast<Consensus::Params const*>(params);
+//     CBlockIndex const* pindexPrev_cpp = static_cast<CBlockIndex const*>(pindexPrev);
+//     CBlockHeader const* pblock_cpp = static_cast<CBlockHeader const*>(pblock);
+//     Consensus::Params const& params_cpp = *static_cast<Consensus::Params const*>(params);
 
-    return GetNextASERTWorkRequired(pindexPrev_cpp, pblock_cpp, params_cpp, nforkHeight);
-}
+//     return GetNextASERTWorkRequired(pindexPrev_cpp, pblock_cpp, params_cpp, nforkHeight);
+// }
 
-#ifdef __cplusplus
 } // extern "C"
-#endif  

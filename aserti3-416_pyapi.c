@@ -1,5 +1,6 @@
 #include <Python.h>
 #include "aserti3-416_pyapi.h"
+#include "aserti3-416_capi.h"
 
 #ifdef __cplusplus
 extern "C" {  

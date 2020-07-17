@@ -7,7 +7,7 @@
 extern "C" {  
 #endif  
 
-PyObject* PyAPI_GetNextASERTWorkRequired(PyObject* self, PyObject* args) {
+PyObject* PyAPI_GetNextASERTWorkRequired(PyObject* self, PyObject* args);
 
 #ifdef __cplusplus
 } // extern "C"
