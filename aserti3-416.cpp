@@ -75,7 +75,7 @@ arith_uint256 UintToArith256(const uint256 &a) {
 }
 
 
-// https://gitlab.com/jtoomim/bitcoin-cash-node/-/blob/fd92035c2e8d16360fb3e314b626bf52f2a2be67/src/pow.cpp#L299
+// https://gitlab.com/jtoomim/bitcoin-cash-node/-/blob/wip-asert/src/pow.cpp#L299
 /**
  * Compute the next required proof of work using an absolutely scheduled 
  * exponentially weighted target (ASERT).
@@ -88,7 +88,7 @@ arith_uint256 UintToArith256(const uint256 &a) {
 uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
                                   const CBlockHeader *pblock,
                                   const Consensus::Params &params,
-                                  const int32_t nforkHeight) {
+                                  const int32_t nRefHeight) noexcept {
     // This cannot handle the genesis block and early blocks in general.
     assert(pindexPrev);
 
@@ -102,21 +102,20 @@ uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
     }
 
     // Diff halves/doubles for every 2 days behind/ahead of schedule we get
-    const uint64_t tau = 2*24*60*60; 
+    constexpr uint64_t tau = 2*24*60*60;
 
     // This algorithm uses fixed-point math. The lowest rbits bits are after
     // the radix, and represent the "decimal" (or binary) portion of the value
-    const uint8_t rbits = 16; 
+    constexpr uint8_t rbits = 16;
 
-    const CBlockIndex *pforkBlock = &pindexPrev[nforkHeight];
+    const CBlockIndex *prefBlock = pindexPrev->GetAncestor(nRefHeight);
+    assert(prefBlock != nullptr);
 
-    assert(pforkBlock != nullptr);
-    assert(pindexPrev->nHeight >= params.DifficultyAdjustmentInterval());
+    const int64_t nTimeDiff = pindexPrev->nTime - prefBlock->GetBlockHeader().nTime;
+    const int32_t nHeightDiff = pindexPrev->nHeight - prefBlock->nHeight;
+    assert(nHeightDiff > 0);
 
-    int32_t nTimeDiff = pindexPrev->nTime - pforkBlock->GetBlockHeader().nTime;
-    int32_t nHeightDiff = pindexPrev->nHeight - pforkBlock->nHeight;
-
-    const arith_uint256 origTarget = arith_uint256().SetCompact(pforkBlock->nBits);
+    const arith_uint256 origTarget = arith_uint256().SetCompact(prefBlock->nBits);
     arith_uint256 nextTarget = origTarget;
 
     // Ultimately, we want to approximate the following ASERT formula, using only integer (fixed-point) math:
@@ -125,10 +124,13 @@ uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
     // First, we'll calculate the exponent:
     int64_t exponent = ((nTimeDiff - params.nPowTargetSpacing * (nHeightDiff+1)) << rbits) / tau;
 
-    // Next, we use the 2^x = 2 * 2(x-1) identity to shift our exponent into the [0, 1) interval.
+    // Next, we use the 2^x = 2 * 2^(x-1) identity to shift our exponent into the [0, 1) interval.
     // The truncated exponent tells us how many shifts we need to do
-    // Note: This needs to be a right shift. Right shift rounds downward, whereas division rounds towards zero.
-    int8_t shifts = exponent >> rbits;
+    // Note1: This needs to be a right shift. Right shift rounds downward, whereas division rounds towards zero.
+    // Note2: This algorithm uses arithmetic shifts of negative numbers. This is unspecified but very common
+    // behavior for C++ compilers before C++20, and standard with C++20. We use unit tests to ensure our compiler
+    // behaves as expected.
+    int16_t shifts = exponent >> rbits;
     if (shifts < 0) {
         nextTarget = nextTarget >> -shifts;
     } else {
@@ -144,13 +146,91 @@ uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
                        5127*exponent*exponent*exponent + (1ll<<47))>>(rbits*3);
     nextTarget += (nextTarget * factor) >> rbits;
 
-    const arith_uint256 powLimit = UintToArith256(params.powLimit);
+    static const arith_uint256 powLimit = UintToArith256(params.powLimit);
     if (nextTarget > powLimit) {
         return powLimit.GetCompact();
     }
 
     return nextTarget.GetCompact();
 }
+
+
+// // https://gitlab.com/jtoomim/bitcoin-cash-node/-/blob/fd92035c2e8d16360fb3e314b626bf52f2a2be67/src/pow.cpp#L299
+// /**
+//  * Compute the next required proof of work using an absolutely scheduled 
+//  * exponentially weighted target (ASERT).
+//  *
+//  * With ASERT, we define an ideal schedule for block issuance (e.g. 1 block every 600 seconds), and we calculate the
+//  * difficulty based on how far the most recent block's timestamp is ahead of or behind that schedule.
+//  * We set our targets (difficulty) exponentially. For every [tau] seconds ahead of or behind schedule we get, we
+//  * double or halve the difficulty. 
+//  */
+// uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
+//                                   const CBlockHeader *pblock,
+//                                   const Consensus::Params &params,
+//                                   const int32_t nforkHeight) {
+//     // This cannot handle the genesis block and early blocks in general.
+//     assert(pindexPrev);
+
+//     // Special difficulty rule for testnet:
+//     // If the new block's timestamp is more than 2* 10 minutes then allow
+//     // mining of a min-difficulty block.
+//     if (params.fPowAllowMinDifficultyBlocks &&
+//         (pblock->GetBlockTime() >
+//          pindexPrev->GetBlockTime() + 2 * params.nPowTargetSpacing)) {
+//         return UintToArith256(params.powLimit).GetCompact();
+//     }
+
+//     // Diff halves/doubles for every 2 days behind/ahead of schedule we get
+//     const uint64_t tau = 2*24*60*60; 
+
+//     // This algorithm uses fixed-point math. The lowest rbits bits are after
+//     // the radix, and represent the "decimal" (or binary) portion of the value
+//     const uint8_t rbits = 16; 
+
+//     const CBlockIndex *pforkBlock = &pindexPrev[nforkHeight];
+
+//     assert(pforkBlock != nullptr);
+//     assert(pindexPrev->nHeight >= params.DifficultyAdjustmentInterval());
+
+//     int32_t nTimeDiff = pindexPrev->nTime - pforkBlock->GetBlockHeader().nTime;
+//     int32_t nHeightDiff = pindexPrev->nHeight - pforkBlock->nHeight;
+
+//     const arith_uint256 origTarget = arith_uint256().SetCompact(pforkBlock->nBits);
+//     arith_uint256 nextTarget = origTarget;
+
+//     // Ultimately, we want to approximate the following ASERT formula, using only integer (fixed-point) math:
+//     //     new_target = old_target * 2^((blocks_time - IDEAL_BLOCK_TIME*(height_diff+1)) / tau)
+
+//     // First, we'll calculate the exponent:
+//     int64_t exponent = ((nTimeDiff - params.nPowTargetSpacing * (nHeightDiff+1)) << rbits) / tau;
+
+//     // Next, we use the 2^x = 2 * 2(x-1) identity to shift our exponent into the [0, 1) interval.
+//     // The truncated exponent tells us how many shifts we need to do
+//     // Note: This needs to be a right shift. Right shift rounds downward, whereas division rounds towards zero.
+//     int8_t shifts = exponent >> rbits;
+//     if (shifts < 0) {
+//         nextTarget = nextTarget >> -shifts;
+//     } else {
+//         nextTarget = nextTarget << shifts;
+//     }
+//     exponent -= (shifts << rbits);
+
+//     // Now we compute an approximated target * 2^(exponent)
+//     // 2^x ~= (1 + 0.695502049*x + 0.2262698*x**2 + 0.0782318*x**3) for 0 <= x < 1
+//     // Error versus actual 2^x is less than 0.013%.
+//     uint64_t factor = (195766423245049*exponent + 
+//                        971821376*exponent*exponent + 
+//                        5127*exponent*exponent*exponent + (1ll<<47))>>(rbits*3);
+//     nextTarget += (nextTarget * factor) >> rbits;
+
+//     const arith_uint256 powLimit = UintToArith256(params.powLimit);
+//     if (nextTarget > powLimit) {
+//         return powLimit.GetCompact();
+//     }
+
+//     return nextTarget.GetCompact();
+// }
 
 
 // int main() {

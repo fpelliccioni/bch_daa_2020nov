@@ -17,8 +17,9 @@ MAX_BLOCKS = 50000
 
 
 # params = {'algo':['wtema-144', 'cw-144'],
+# params = {'algo':['aserti3-416', 'aserti3-mo3-416'],
 
-params = {'algo':['aserti3-416', 'aserti3-mo3-416'],
+params = {'algo':['aserti3-416-cpp'],
           'scenario':'default',
           'num_blocks':4000,
 

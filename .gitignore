@@ -4,3 +4,5 @@ aserti3416cpp.cpython-38-x86_64-linux-gnu.so
 aserti3416cpp.egg-info/
 build/
 dist/
+.eggs/
+aserti3416cpp.cpython-37m-x86_64-linux-gnu.so

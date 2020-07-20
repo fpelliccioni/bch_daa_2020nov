@@ -12,6 +12,8 @@ from functools import partial
 from operator import attrgetter
 from threading import Lock
 
+import aserti3416cpp
+
 def bits_to_target(bits):
     size = bits >> 24
     assert size <= 0x1d
@@ -152,6 +154,59 @@ def suitable_block_index(index):
 
     return indices[1]
 
+
+
+# void* CAPI_CBlockIndex_construct() {
+# void CAPI_CBlockIndex_destruct(void* ptr) {
+# void CAPI_CBlockIndex_set_nHeight(void* ptr, int nHeight) {
+# int CAPI_CBlockIndex_get_nHeight(void* ptr) {
+# void CAPI_CBlockIndex_set_nTime(void* ptr, uint32_t nTime) {
+# void CAPI_CBlockIndex_set_nBits(void* ptr, uint32_t nBits) {
+# void CAPI_CBlockIndex_set_nChainWork(void* ptr, void* nChainWork) {
+
+def next_bits_aserti_416_cpp(msg, tau, mode=1, mo3=False):
+
+    # const CBlockIndex *prefBlock = pindexPrev->GetAncestor(nRefHeight);
+    # assert(prefBlock != nullptr);
+
+    # const int64_t nTimeDiff = pindexPrev->nTime - prefBlock->GetBlockHeader().nTime;
+    # const int32_t nHeightDiff = pindexPrev->nHeight - prefBlock->nHeight;
+    # assert(nHeightDiff > 0);
+
+    if mo3:
+        last = suitable_block_index(len(states) - 1)
+        first = suitable_block_index(2)
+    else:
+        last = len(states)-1
+        first = 0
+
+    blocks = []
+    for i in range(first, last):
+        state = states[i]
+        block = aserti3416cpp.CBlockIndex_construct()
+        aserti3416cpp.CBlockIndex_set_nTime(block, state.timestamp)
+        aserti3416cpp.CAPI_CBlockIndex_set_nHeight(block, state.height)
+        aserti3416cpp.CAPI_CBlockIndex_set_nBits(block, state.bits)
+        blocks.append(block)
+
+    for i in range(len(blocks), 0, -1):
+        aserti3416cpp.CAPI_CBlockIndex_set_pprev(blocks[i], blocks[i-1])
+
+    blkHeaderDummy = aserti3416cpp.PyAPI_CBlockHeader_construct()
+    params = aserti3416cpp.Params_GetDefaultMainnetConsensusParams()
+    # nforkHeight = states[first].height
+    nforkHeight = states[0].height
+
+    res = aserti3416cpp.GetNextASERTWorkRequired(blocks[-1], blkHeaderDummy, params, nforkHeight)
+
+    aserti3416cpp.PyAPI_CBlockHeader_destruct(blkHeaderDummy)
+    aserti3416cpp.Params_destruct(blkHeaderDummy)
+    for block in blocks:
+        aserti3416cpp.CBlockIndex_destruct(block)
+
+    return res
+
+
 def next_bits_aserti(msg, tau, mode=1, mo3=False):
     rbits = 16      # number of bits after the radix for fixed-point math
     radix = 1<<rbits
@@ -164,7 +219,7 @@ def next_bits_aserti(msg, tau, mode=1, mo3=False):
 
     blocks_time = states[last].timestamp - states[first].timestamp
     height_diff = states[last].height    - states[first].height
-    target = bits_to_target(states[-0].bits)
+    target = bits_to_target(states[0].bits)
 
     # Ultimately, we want to approximate the following ASERT formula, using only integer (fixed-point) math:
     #     new_target = old_target * 2^((blocks_time - IDEAL_BLOCK_TIME*(height_diff+1)) / tau)
@@ -391,11 +446,15 @@ Algos = {
         'mode': 3, 'mo3':True,
     }),
 
-    'aserti3-416-cpp' : Algo(next_bits_aserti, {
+    # C++ wrappers
+    'aserti3-416-cpp' : Algo(next_bits_aserti_416_cpp, {
         'tau': int(math.log(2) * IDEAL_BLOCK_TIME * 416),
         'mode': 3,
     }),
-
+    'aserti3-mo3-416-cpp' : Algo(next_bits_aserti_416_cpp, {
+        'tau': int(math.log(2) * IDEAL_BLOCK_TIME * 416),
+        'mode': 3, 'mo3':True,
+    }),
 }
 
 Scenario = namedtuple('Scenario', 'next_fx, params, dr_hashrate, pump_144_threshold')

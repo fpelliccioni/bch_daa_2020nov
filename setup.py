@@ -148,7 +148,7 @@ extensions = [
         # include_dirs=['kth/include'],
         # library_dirs=['kth/lib'],
 
-    	sources = ['aserti3-416.cpp',  'aserti3-416_capi.cpp', 'aserti3-416_pyapi.c'],
+    	sources = ['aserti3-416.cpp',  'aserti3-416_capi.cpp', 'aserti3-416_pyapi.c', 'pyapi_module.c'],
     ),
 ]
 
@@ -189,6 +189,8 @@ setup(
     ],
 
     keywords='bitcoin cash difficulty daa asert',
+
+    setup_requires=["wheel"],
 
     extras_require={
         'dev': ['check-manifest'],
