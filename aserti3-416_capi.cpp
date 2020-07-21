@@ -146,6 +146,7 @@ void* CAPI_Params_GetDefaultMainnetConsensusParams() {
     consensus->nPowTargetTimespan = 14 * 24 * 60 * 60;
     consensus->nPowTargetSpacing = 10 * 60;
     consensus->fPowAllowMinDifficultyBlocks = false;
+    consensus->nDAAHalfLife = 2 * 24 * 60 * 60;
     return consensus; 
 }
 
@@ -159,13 +160,28 @@ void CAPI_Params_destruct(void* ptr) {
 uint32_t CAPI_GetNextASERTWorkRequired(void const* pindexPrev,
                                   void const* pblock,
                                   void const* params,
-                                  const int32_t nforkHeight) {
+                                  void const* pindexReferenceBlock,
+                                  int debugASERT) {
 
     CBlockIndex const* pindexPrev_cpp = static_cast<CBlockIndex const*>(pindexPrev);
     CBlockHeader const* pblock_cpp = static_cast<CBlockHeader const*>(pblock);
     Consensus::Params const& params_cpp = *static_cast<Consensus::Params const*>(params);
+    CBlockIndex const* pindexReferenceBlock_cpp = static_cast<CBlockIndex const*>(pindexReferenceBlock);
 
-    return GetNextASERTWorkRequired(pindexPrev_cpp, pblock_cpp, params_cpp, nforkHeight);
+    return GetNextASERTWorkRequired(pindexPrev_cpp, pblock_cpp, params_cpp, pindexReferenceBlock_cpp, debugASERT);
 }
+
+
+// uint32_t CAPI_GetNextASERTWorkRequired(void const* pindexPrev,
+//                                   void const* pblock,
+//                                   void const* params,
+//                                   const int32_t nforkHeight) {
+
+//     CBlockIndex const* pindexPrev_cpp = static_cast<CBlockIndex const*>(pindexPrev);
+//     CBlockHeader const* pblock_cpp = static_cast<CBlockHeader const*>(pblock);
+//     Consensus::Params const& params_cpp = *static_cast<Consensus::Params const*>(params);
+
+//     return GetNextASERTWorkRequired(pindexPrev_cpp, pblock_cpp, params_cpp, nforkHeight);
+// }
 
 } // extern "C"

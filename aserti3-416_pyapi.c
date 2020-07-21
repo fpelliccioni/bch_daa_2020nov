@@ -198,19 +198,40 @@ PyObject* PyAPI_GetNextASERTWorkRequired(PyObject* self, PyObject* args) {
     PyObject* py_pindexPrev;
     PyObject* py_pblock;
     PyObject* py_params;
-    int32_t nforkHeight;
+    PyObject* py_pindexReferenceBlock;
+    int debugASERT;
 
-    if ( ! PyArg_ParseTuple(args, "OOOi", &py_pindexPrev, &py_pblock, &py_params, &nforkHeight)) {
+    if ( ! PyArg_ParseTuple(args, "OOOOp", &py_pindexPrev, &py_pblock, &py_params, &py_pindexReferenceBlock, &debugASERT)) {
         return NULL;
     }
 
     void* pindexPrev = get_ptr(py_pindexPrev);
     void* pblock = get_ptr(py_pblock);
     void* params = get_ptr(py_params);
+    void* pindexReferenceBlock = get_ptr(py_pindexReferenceBlock);
 
-    uint32_t res = CAPI_GetNextASERTWorkRequired(pindexPrev, pblock, params, nforkHeight);
+    uint32_t res = CAPI_GetNextASERTWorkRequired(pindexPrev, pblock, params, pindexReferenceBlock, debugASERT);
     return Py_BuildValue("I", res);   
 }
+
+
+// PyObject* PyAPI_GetNextASERTWorkRequired(PyObject* self, PyObject* args) {
+//     PyObject* py_pindexPrev;
+//     PyObject* py_pblock;
+//     PyObject* py_params;
+//     int32_t nforkHeight;
+
+//     if ( ! PyArg_ParseTuple(args, "OOOi", &py_pindexPrev, &py_pblock, &py_params, &nforkHeight)) {
+//         return NULL;
+//     }
+
+//     void* pindexPrev = get_ptr(py_pindexPrev);
+//     void* pblock = get_ptr(py_pblock);
+//     void* params = get_ptr(py_params);
+
+//     uint32_t res = CAPI_GetNextASERTWorkRequired(pindexPrev, pblock, params, nforkHeight);
+//     return Py_BuildValue("I", res);   
+// }
 
 #ifdef __cplusplus
 } // extern "C"

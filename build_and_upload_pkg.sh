@@ -25,7 +25,3 @@ sudo ./reset.sh
 
 # sudo ./reset.sh
 
-# --------------------------------------------------
-# Luego, para el que instala
-
-# pip install bitprim-native --no-cache-dir

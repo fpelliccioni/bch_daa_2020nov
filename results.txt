@@ -1,0 +1,70 @@
+GetNextASERTWorkRequired - 1
+GetNextASERTWorkRequired - 2
+GetNextASERTWorkRequired - 3
+GetNextASERTWorkRequired - 4
+GetNextASERTWorkRequired - 6
+GetNextASERTWorkRequired - 8
+params.nDAAHalfLife: 172800
+pindexPrev->nTime:   1503429625
+pindexReferenceBlock->nTime:   1502218225
+pindexReferenceBlock->GetBlockHeader().nTime:   1502218225
+pindexPrev->nHeight:   481823
+pindexReferenceBlock->nHeight:   479804
+nTimeDiff:   1211400
+nHeightDiff: 2019
+refBlockTarget.GetCompact(): 403196855
+powLimit.GetCompact(): 486604799
+CalculateASERT - 1
+CalculateASERT - 2
+CalculateASERT - 3
+refTarget.GetCompact():         403196855
+nextTarget.GetCompact():        403196855
+nTimeDiff:         1211400
+nPowTargetSpacing: 600
+nHeightDiff:       2019
+rbits:             16
+nHalfLife:         172800
+exponent:         0
+shifts:         0
+CalculateASERT - 5
+CalculateASERT - 6
+nextTarget.GetCompact():        403196855
+exponent:         0
+CalculateASERT - 10
+factor:         0
+nextTarget.GetCompact():        403196855
+CalculateASERT - 12
+returns nextTarget.GetCompact():        403196855
+nextTarget.GetCompact(): 403196855
+target:                   203411470507348306033335177392049742228316288402510053376
+
+
+------------------------------------------------
+
+Python version
+
+rbits:                   16
+radix:                   65536
+IDEAL_BLOCK_TIME:        600
+tau:                     173009
+first:                   0
+last:                    2019
+states[first].timestamp: 1502218225
+states[first].height:    479804
+states[last].timestamp:  1503429625
+states[last].height:     481823
+states[0].bits:          403196855
+blocks_time:              1211400
+height_diff:              2019
+target:                   203411470507348306033335177392049742228316288402510053376
+target_to_bits(target):   403196855
+exponent:                0
+shifts:              0
+ELSE shifts < 0
+target:                   203411470507348306033335177392049742228316288402510053376
+target_to_bits(target):   403196855
+exponent:                0
+factor:                   0
+target:                   203411470507348306033335177392049742228316288402510053376
+target_to_bits(target):   403196855
+target:                   203411470507348306033335177392049742228316288402510053376

@@ -181,28 +181,29 @@ def next_bits_aserti_416_cpp(msg, tau, mode=1, mo3=False):
         first = 0
 
     blocks = []
-    for i in range(first, last):
+    for i in range(first, last + 1):
         state = states[i]
         block = aserti3416cpp.CBlockIndex_construct()
         aserti3416cpp.CBlockIndex_set_nTime(block, state.timestamp)
-        aserti3416cpp.CAPI_CBlockIndex_set_nHeight(block, state.height)
-        aserti3416cpp.CAPI_CBlockIndex_set_nBits(block, state.bits)
+        aserti3416cpp.CBlockIndex_set_nHeight(block, state.height)
+        aserti3416cpp.CBlockIndex_set_nBits(block, state.bits)
         blocks.append(block)
 
-    for i in range(len(blocks), 0, -1):
-        aserti3416cpp.CAPI_CBlockIndex_set_pprev(blocks[i], blocks[i-1])
+    for i in range(len(blocks) - 1, 0, -1):
+        aserti3416cpp.CBlockIndex_set_pprev(blocks[i], blocks[i-1])
 
-    blkHeaderDummy = aserti3416cpp.PyAPI_CBlockHeader_construct()
+    blkHeaderDummy = aserti3416cpp.CBlockHeader_construct()
     params = aserti3416cpp.Params_GetDefaultMainnetConsensusParams()
     # nforkHeight = states[first].height
     nforkHeight = states[0].height
 
-    res = aserti3416cpp.GetNextASERTWorkRequired(blocks[-1], blkHeaderDummy, params, nforkHeight)
+    # res = aserti3416cpp.GetNextASERTWorkRequired(blocks[-1], blkHeaderDummy, params, nforkHeight)
+    res = aserti3416cpp.GetNextASERTWorkRequired(blocks[-1], blkHeaderDummy, params, blocks[0], False)
 
-    aserti3416cpp.PyAPI_CBlockHeader_destruct(blkHeaderDummy)
-    aserti3416cpp.Params_destruct(blkHeaderDummy)
-    for block in blocks:
-        aserti3416cpp.CBlockIndex_destruct(block)
+    # aserti3416cpp.CBlockHeader_destruct(blkHeaderDummy)
+    # aserti3416cpp.Params_destruct(params)
+    # for block in blocks:
+    #     aserti3416cpp.CBlockIndex_destruct(block)
 
     return res
 
@@ -217,9 +218,27 @@ def next_bits_aserti(msg, tau, mode=1, mo3=False):
         last = len(states)-1
         first = 0
 
+    # print(f'rbits:                   {rbits}')
+    # print(f'radix:                   {radix}')
+    # print(f'IDEAL_BLOCK_TIME:        {IDEAL_BLOCK_TIME}')
+    # print(f'tau:                     {tau}')
+
+    # print(f'first:                   {first}')
+    # print(f'last:                    {last}')
+    # print(f'states[first].timestamp: {states[first].timestamp}')
+    # print(f'states[first].height:    {states[first].height}')
+    # print(f'states[last].timestamp:  {states[last].timestamp}')
+    # print(f'states[last].height:     {states[last].height}')
+    # print(f'states[0].bits:          {states[0].bits}')
+
     blocks_time = states[last].timestamp - states[first].timestamp
     height_diff = states[last].height    - states[first].height
     target = bits_to_target(states[0].bits)
+
+    # print(f'blocks_time:              {blocks_time}')
+    # print(f'height_diff:              {height_diff}')
+    # print(f'target:                   {target}')
+    # print(f'target_to_bits(target):   {target_to_bits(target)}')
 
     # Ultimately, we want to approximate the following ASERT formula, using only integer (fixed-point) math:
     #     new_target = old_target * 2^((blocks_time - IDEAL_BLOCK_TIME*(height_diff+1)) / tau)
@@ -227,16 +246,25 @@ def next_bits_aserti(msg, tau, mode=1, mo3=False):
     # First, we'll calculate the exponent:
     exponent = ((blocks_time - IDEAL_BLOCK_TIME*height_diff) * radix) // tau
 
+    # print(f'exponent:                {exponent}')
+
     # Next, we use the 2^x = 2 * 2^(x-1) identity to shift our exponent into the (0, 1] interval.
     # First, the truncated exponent tells us how many shifts we need to do
     shifts = exponent >> rbits
+    # print(f'shifts:              {shifts}')
 
     # Next, we shift. Python doesn't allow shifting by negative integers, so:
     if shifts < 0:
+        # print("IF shifts < 0")
         target >>= -shifts
     else:
+        # print("ELSE shifts < 0")
         target <<= shifts
     exponent -= shifts*radix
+
+    # print(f'target:                   {target}')
+    # print(f'target_to_bits(target):   {target_to_bits(target)}')
+    # print(f'exponent:                {exponent}')
 
     # Now we compute an approximated target * 2^(exponent)
     if mode == 1:
@@ -249,6 +277,11 @@ def next_bits_aserti(msg, tau, mode=1, mo3=False):
         # target * 2^x ~= target * (1 + 0.695502049*x + 0.2262698*x**2 + 0.0782318*x**3)
         factor = (195766423245049*exponent + 971821376*exponent**2 + 5127*exponent**3 + 2**47)>>(rbits*3)
         target += (target * factor) >> rbits
+
+    # print(f'factor:                   {factor}')
+    # print(f'target:                   {target}')
+    # print(f'target_to_bits(target):   {target_to_bits(target)}')
+
     return target_to_bits(target)
 
 def block_time(mean_time):
@@ -329,6 +362,8 @@ def next_step(fx_jump_factor, params):
     # Calculate our dynamic difficulty
     bits = algo.next_bits(msg, **algo.params)
     target = bits_to_target(bits)
+    print(f'bits: {bits}')
+    # print(f'target: {target}')
     # See how long we take to mine a block
     mean_hashes = pow(2, 256) // target
     mean_time = mean_hashes / (hashrate * 1e15)

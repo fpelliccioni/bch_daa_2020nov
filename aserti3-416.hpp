@@ -706,6 +706,7 @@ struct Params {
     uint256 powLimit;
     bool fPowAllowMinDifficultyBlocks;
     // bool fPowNoRetargeting;
+    int64_t nDAAHalfLife;
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
     int64_t DifficultyAdjustmentInterval() const {
@@ -1144,21 +1145,27 @@ const CBlockIndex *CBlockIndex::GetAncestor(int height) const {
 // ---------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------
 
-
-// https://gitlab.com/jtoomim/bitcoin-cash-node/-/blob/fd92035c2e8d16360fb3e314b626bf52f2a2be67/src/pow.cpp#L299
-
-/**
- * Compute the next required proof of work using an absolutely scheduled 
- * exponentially weighted target (ASERT).
- *
- * With ASERT, we define an ideal schedule for block issuance (e.g. 1 block every 600 seconds), and we calculate the
- * difficulty based on how far the most recent block's timestamp is ahead of or behind that schedule.
- * We set our targets (difficulty) exponentially. For every [tau] seconds ahead of or behind schedule we get, we
- * double or halve the difficulty. 
- */
+// https://gitlab.com/freetrader/bitcoin-cash-node/-/blob/affe4657dc85f25b6782648960579bb2a8fedd6a/src/pow.cpp#L52
 uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
                                   const CBlockHeader *pblock,
                                   const Consensus::Params &params,
-                                  const int32_t nforkHeight) noexcept;
+                                  const CBlockIndex *pindexReferenceBlock,
+                                  bool debugASERT) noexcept;
+
+
+// // https://gitlab.com/jtoomim/bitcoin-cash-node/-/blob/fd92035c2e8d16360fb3e314b626bf52f2a2be67/src/pow.cpp#L299
+// /**
+//  * Compute the next required proof of work using an absolutely scheduled 
+//  * exponentially weighted target (ASERT).
+//  *
+//  * With ASERT, we define an ideal schedule for block issuance (e.g. 1 block every 600 seconds), and we calculate the
+//  * difficulty based on how far the most recent block's timestamp is ahead of or behind that schedule.
+//  * We set our targets (difficulty) exponentially. For every [tau] seconds ahead of or behind schedule we get, we
+//  * double or halve the difficulty. 
+//  */
+// uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
+//                                   const CBlockHeader *pblock,
+//                                   const Consensus::Params &params,
+//                                   const int32_t nforkHeight) noexcept;
 
 #endif // ASERTI3_416_HPP_

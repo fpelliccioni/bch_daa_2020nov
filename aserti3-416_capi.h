@@ -39,10 +39,17 @@ void CAPI_Params_destruct(void* ptr);
 
 
 // CAPI_GetNextASERTWorkRequired --------------------------------------------------------
-uint32_t CAPI_GetNextASERTWorkRequired(const void* pindexPrev,
-                                  const void* pblock,
-                                  const void* params,
-                                  const int32_t nforkHeight);
+
+uint32_t CAPI_GetNextASERTWorkRequired(void const* pindexPrev,
+                                  void const* pblock,
+                                  void const* params,
+                                  void const* pindexReferenceBlock,
+                                  int debugASERT);
+
+// uint32_t CAPI_GetNextASERTWorkRequired(const void* pindexPrev,
+//                                   const void* pblock,
+//                                   const void* params,
+//                                   const int32_t nforkHeight);
 
 #ifdef __cplusplus
 } // extern "C"
