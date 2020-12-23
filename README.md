@@ -1,1 +1,1 @@
-# bch_daa_2020nov
+# Python Wrapper for Bitcoin Cash Node (C++) ASERT implementation.
